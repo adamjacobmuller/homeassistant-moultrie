@@ -8,6 +8,22 @@
           "email": "Email",
           "password": "Password"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Moultrie Mobile",
+        "description": "Your session has expired. Please re-enter your credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reconfigure_confirm": {
+        "title": "Reconfigure Moultrie Mobile",
+        "description": "Update your Moultrie Mobile account credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -15,7 +31,9 @@
       "cannot_connect": "Unable to connect to Moultrie Mobile"
     },
     "abort": {
-      "already_configured": "This account is already configured"
+      "already_configured": "This account is already configured",
+      "reauth_successful": "Re-authentication successful",
+      "reconfigure_successful": "Reconfiguration successful"
     }
   },
   "entity": {
@@ -105,6 +123,14 @@
       "request_video": {
         "name": "Request video"
       }
+    }
+  },
+  "exceptions": {
+    "settings_save_failed": {
+      "message": "Failed to save camera settings. Please try again."
+    },
+    "on_demand_failed": {
+      "message": "Failed to request on-demand capture. Please try again."
     }
   }
 }
