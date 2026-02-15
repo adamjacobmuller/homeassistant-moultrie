@@ -1,0 +1,10 @@
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: ha-moultrie-dev
+    volumes:
+      - ./config:/config
+      - ./custom_components/moultrie:/config/custom_components/moultrie
+    ports:
+      - "8123:8123"
+    restart: unless-stopped
