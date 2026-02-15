@@ -43,6 +43,10 @@ def _on_demand_enabled(data: dict[str, Any]) -> bool | None:
     return data["info"].get("OnDemandSwitchSetting")
 
 
+def _pending_settings(data: dict[str, Any]) -> bool | None:
+    return data["info"].get("HasPendingSettingsUpdates")
+
+
 BINARY_SENSOR_DESCRIPTIONS: list[MoultrieBinarySensorDescription] = [
     MoultrieBinarySensorDescription(
         key="subscription_active",
@@ -61,6 +65,12 @@ BINARY_SENSOR_DESCRIPTIONS: list[MoultrieBinarySensorDescription] = [
         translation_key="on_demand_enabled",
         icon="mdi:camera-wireless",
         value_fn=_on_demand_enabled,
+    ),
+    MoultrieBinarySensorDescription(
+        key="pending_settings",
+        translation_key="pending_settings",
+        icon="mdi:sync-alert",
+        value_fn=_pending_settings,
     ),
 ]
 
