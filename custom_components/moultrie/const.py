@@ -1,5 +1,7 @@
 """Constants for the Moultrie Mobile integration."""
 
+from homeassistant.const import Platform
+
 DOMAIN = "moultrie"
 
 # Azure AD B2C constants
@@ -28,11 +30,11 @@ CONF_REFRESH_TOKEN = "refresh_token"
 UPDATE_INTERVAL = 5
 
 # Platforms
-PLATFORMS = [
-    "camera",
-    "sensor",
-    "binary_sensor",
-    "switch",
-    "select",
-    "button",
+PLATFORMS: list[Platform] = [
+    Platform.CAMERA,
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.SWITCH,
+    Platform.SELECT,
+    Platform.BUTTON,
 ]
