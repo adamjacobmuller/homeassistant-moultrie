@@ -151,4 +151,7 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
             self._device_id,
             [{"SettingShortText": self._setting_short, "Value": value}],
         )
-        await self.coordinator.async_request_refresh()
+        # Optimistically update local cache - the camera is cellular and
+        # won't reflect the new setting until its next check-in
+        setting["Value"] = value
+        self.async_write_ha_state()
