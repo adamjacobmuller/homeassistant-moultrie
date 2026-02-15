@@ -1,0 +1,91 @@
+{
+  "entity": {
+    "camera": {
+      "trail_camera": {
+        "default": "mdi:camera"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "default": "mdi:battery"
+      },
+      "signal_strength": {
+        "default": "mdi:signal"
+      },
+      "storage_free": {
+        "default": "mdi:micro-sd"
+      },
+      "storage_total": {
+        "default": "mdi:micro-sd"
+      },
+      "images_used": {
+        "default": "mdi:image-multiple"
+      },
+      "firmware": {
+        "default": "mdi:cellphone-arrow-down"
+      },
+      "last_activity": {
+        "default": "mdi:clock-outline"
+      },
+      "temperature": {
+        "default": "mdi:thermometer"
+      }
+    },
+    "binary_sensor": {
+      "subscription_active": {
+        "default": "mdi:card-account-details"
+      },
+      "device_active": {
+        "default": "mdi:check-circle"
+      },
+      "on_demand_enabled": {
+        "default": "mdi:camera-wireless"
+      },
+      "pending_settings": {
+        "default": "mdi:sync-alert"
+      }
+    },
+    "switch": {
+      "on_demand": {
+        "default": "mdi:camera-wireless"
+      },
+      "motion_freeze": {
+        "default": "mdi:snowflake"
+      }
+    },
+    "select": {
+      "capture_mode": {
+        "default": "mdi:camera-burst"
+      },
+      "photo_video_mode": {
+        "default": "mdi:camera-switch"
+      },
+      "upload_frequency": {
+        "default": "mdi:cloud-upload"
+      },
+      "photo_resolution": {
+        "default": "mdi:image-size-select-large"
+      },
+      "multi_shot": {
+        "default": "mdi:image-multiple"
+      },
+      "video_resolution": {
+        "default": "mdi:video-high-definition"
+      },
+      "pir_sensitivity": {
+        "default": "mdi:motion-sensor"
+      },
+      "power_source": {
+        "default": "mdi:battery"
+      }
+    },
+    "button": {
+      "request_photo": {
+        "default": "mdi:camera"
+      },
+      "request_video": {
+        "default": "mdi:video"
+      }
+    }
+  }
+}
