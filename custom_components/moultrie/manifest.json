@@ -1,0 +1,11 @@
+{
+  "domain": "moultrie",
+  "name": "Moultrie Mobile",
+  "codeowners": ["@adam"],
+  "config_flow": true,
+  "documentation": "https://gitlab.adam.gs/home/homeassistant-moultrie",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://gitlab.adam.gs/home/homeassistant-moultrie/-/issues",
+  "requirements": ["requests>=2.28.0"],
+  "version": "0.1.0"
+}

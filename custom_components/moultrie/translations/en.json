@@ -1,0 +1,107 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Moultrie Mobile Login",
+        "description": "Enter your Moultrie Mobile account credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password",
+      "cannot_connect": "Unable to connect to Moultrie Mobile"
+    },
+    "abort": {
+      "already_configured": "This account is already configured"
+    }
+  },
+  "entity": {
+    "camera": {
+      "trail_camera": {
+        "name": "Trail camera"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      },
+      "storage_free": {
+        "name": "Storage free"
+      },
+      "storage_total": {
+        "name": "Storage total"
+      },
+      "images_used": {
+        "name": "Images used"
+      },
+      "firmware": {
+        "name": "Firmware version"
+      },
+      "last_activity": {
+        "name": "Last activity"
+      },
+      "temperature": {
+        "name": "Temperature"
+      }
+    },
+    "binary_sensor": {
+      "subscription_active": {
+        "name": "Subscription active"
+      },
+      "device_active": {
+        "name": "Device active"
+      },
+      "on_demand_enabled": {
+        "name": "On demand enabled"
+      }
+    },
+    "switch": {
+      "on_demand": {
+        "name": "On demand"
+      },
+      "motion_freeze": {
+        "name": "Motion freeze"
+      }
+    },
+    "select": {
+      "capture_mode": {
+        "name": "Capture mode"
+      },
+      "photo_video_mode": {
+        "name": "Photo/Video mode"
+      },
+      "upload_frequency": {
+        "name": "Upload frequency"
+      },
+      "photo_resolution": {
+        "name": "Photo resolution"
+      },
+      "multi_shot": {
+        "name": "Multi-shot"
+      },
+      "video_resolution": {
+        "name": "Video resolution"
+      },
+      "pir_sensitivity": {
+        "name": "PIR sensitivity"
+      },
+      "power_source": {
+        "name": "Power source"
+      }
+    },
+    "button": {
+      "request_photo": {
+        "name": "Request photo"
+      },
+      "request_video": {
+        "name": "Request video"
+      }
+    }
+  }
+}
