@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Auth tokens
+.token
+.refresh
+.token_json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Home Assistant dev
+config/
