@@ -24,5 +24,11 @@ build/
 .DS_Store
 Thumbs.db
 
+# Virtual environments
+.venv/
+
 # Home Assistant dev
 config/
+
+# Deploy script
+deploy.sh
