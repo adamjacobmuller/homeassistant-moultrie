@@ -212,10 +212,24 @@ class MoultrieApiClient:
         result = self._get("/api/v1/Device/GetGroupedSettings", params={"id": camera_id})
         return result.get("GroupedSettings", [])
 
-    def save_device_settings(self, camera_id: int, settings: list[dict]) -> bool:
+    def save_device_settings(
+        self,
+        camera_id: int,
+        modem_id: int,
+        settings_groups: list[dict],
+    ) -> bool:
+        """Save settings by sending the full grouped settings structure.
+
+        The API requires the complete GetGroupedSettings structure back,
+        with modified values, plus CameraId and ModemId.
+        """
         result = self._post(
             "/api/v1/Device/SaveDeviceSettings",
-            {"CameraId": camera_id, "Settings": settings},
+            {
+                "CameraId": camera_id,
+                "ModemId": modem_id,
+                "Settings": settings_groups,
+            },
         )
         return result.get("SettingsSaved", False)
 

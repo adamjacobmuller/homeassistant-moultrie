@@ -77,16 +77,23 @@ class MoultrieSettingSwitch(MoultrieEntity, SwitchEntity):
         await self._set_value("F")
 
     async def _set_value(self, value: str) -> None:
+        data = self.device_data
+        if data is None:
+            return
+
+        # Update ALL instances of this setting across all groups
+        # (some settings appear in multiple groups)
+        for group in data["settings_groups"]:
+            for s in group.get("Settings", []):
+                if s.get("SettingShortText") == self._setting_short:
+                    s["Value"] = value
+
+        # Send the full grouped settings structure (required by the API)
+        modem_id = data["info"].get("ModemId", 0)
         await self.hass.async_add_executor_job(
             self.coordinator.client.save_device_settings,
             self._device_id,
-            [{"SettingShortText": self._setting_short, "Value": value}],
+            modem_id,
+            data["settings_groups"],
         )
-        # Optimistically update local cache - the camera is cellular and
-        # won't reflect the new setting until its next check-in
-        data = self.device_data
-        if data:
-            setting = data.get("settings", {}).get(self._setting_short)
-            if setting:
-                setting["Value"] = value
         self.async_write_ha_state()

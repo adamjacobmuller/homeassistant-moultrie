@@ -136,8 +136,9 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
         return current_val
 
     async def async_select_option(self, option: str) -> None:
+        data = self.device_data
         setting = self._setting_data
-        if setting is None:
+        if data is None or setting is None:
             return
         # Find the value code for the selected text
         value = option
@@ -146,12 +147,19 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
                 value = opt["Value"]
                 break
 
+        # Update ALL instances of this setting across all groups
+        # (some settings like CCM appear in multiple groups)
+        for group in data["settings_groups"]:
+            for s in group.get("Settings", []):
+                if s.get("SettingShortText") == self._setting_short:
+                    s["Value"] = value
+
+        # Send the full grouped settings structure (required by the API)
+        modem_id = data["info"].get("ModemId", 0)
         await self.hass.async_add_executor_job(
             self.coordinator.client.save_device_settings,
             self._device_id,
-            [{"SettingShortText": self._setting_short, "Value": value}],
+            modem_id,
+            data["settings_groups"],
         )
-        # Optimistically update local cache - the camera is cellular and
-        # won't reflect the new setting until its next check-in
-        setting["Value"] = value
         self.async_write_ha_state()
