@@ -7,11 +7,12 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import MoultrieConfigEntry
 from .coordinator import MoultrieCoordinator
 from .entity import MoultrieEntity
 
@@ -79,18 +80,17 @@ SELECT_DESCRIPTIONS: list[MoultrieSelectDescription] = [
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MoultrieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: MoultrieCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities = []
+    """Set up Moultrie select entities."""
+    coordinator = entry.runtime_data
+    entities: list[MoultrieSelect] = []
     for device_id, device_data in coordinator.data.get("devices", {}).items():
         settings = device_data.get("settings", {})
         for desc in SELECT_DESCRIPTIONS:
             if desc.setting_short in settings:
-                entities.append(
-                    MoultrieSelect(coordinator, device_id, desc)
-                )
+                entities.append(MoultrieSelect(coordinator, device_id, desc))
     async_add_entities(entities)
 
 
@@ -98,6 +98,7 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
     """Select entity for a Moultrie dropdown camera setting."""
 
     entity_description: MoultrieSelectDescription
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
@@ -105,12 +106,14 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
         device_id: int,
         description: MoultrieSelectDescription,
     ) -> None:
+        """Initialize the select entity."""
         super().__init__(coordinator, device_id, description.key)
         self.entity_description = description
         self._setting_short = description.setting_short
 
     @property
-    def _setting_data(self) -> dict | None:
+    def _setting_data(self) -> dict[str, Any] | None:
+        """Get the setting data for this entity."""
         data = self.device_data
         if data is None:
             return None
@@ -118,6 +121,7 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
 
     @property
     def options(self) -> list[str]:
+        """Return the list of available options."""
         setting = self._setting_data
         if setting is None:
             return []
@@ -126,6 +130,7 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
+        """Return the currently selected option."""
         setting = self._setting_data
         if setting is None:
             return None
@@ -136,30 +141,33 @@ class MoultrieSelect(MoultrieEntity, SelectEntity):
         return current_val
 
     async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
         data = self.device_data
         setting = self._setting_data
         if data is None or setting is None:
             return
-        # Find the value code for the selected text
+
         value = option
         for opt in setting.get("Options", []):
             if opt.get("Text") == option:
                 value = opt["Value"]
                 break
 
-        # Update ALL instances of this setting across all groups
-        # (some settings like CCM appear in multiple groups)
         for group in data["settings_groups"]:
             for s in group.get("Settings", []):
                 if s.get("SettingShortText") == self._setting_short:
                     s["Value"] = value
 
-        # Send the full grouped settings structure (required by the API)
         modem_id = data["info"].get("ModemId", 0)
-        await self.hass.async_add_executor_job(
-            self.coordinator.client.save_device_settings,
-            self._device_id,
-            modem_id,
-            data["settings_groups"],
-        )
+        try:
+            await self.coordinator.client.save_device_settings(
+                self._device_id,
+                modem_id,
+                data["settings_groups"],
+            )
+        except Exception as err:
+            raise HomeAssistantError(
+                translation_domain="moultrie",
+                translation_key="settings_save_failed",
+            ) from err
         self.async_write_ha_state()

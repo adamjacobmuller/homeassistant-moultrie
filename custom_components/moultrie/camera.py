@@ -5,14 +5,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import requests
-
 from homeassistant.components.camera import Camera
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import MoultrieConfigEntry
 from .coordinator import MoultrieCoordinator
 from .entity import MoultrieEntity
 
@@ -21,10 +18,11 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MoultrieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: MoultrieCoordinator = hass.data[DOMAIN][entry.entry_id]
+    """Set up Moultrie camera entities."""
+    coordinator = entry.runtime_data
     entities = []
     for device_id in coordinator.data.get("devices", {}):
         entities.append(MoultrieCamera(coordinator, device_id))
@@ -37,6 +35,7 @@ class MoultrieCamera(MoultrieEntity, Camera):
     _attr_translation_key = "trail_camera"
 
     def __init__(self, coordinator: MoultrieCoordinator, device_id: int) -> None:
+        """Initialize the camera entity."""
         MoultrieEntity.__init__(self, coordinator, device_id, "camera")
         Camera.__init__(self)
         self._current_url: str | None = None
@@ -44,6 +43,7 @@ class MoultrieCamera(MoultrieEntity, Camera):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra state attributes."""
         data = self.device_data
         if not data or not data.get("latest_image"):
             return {}
@@ -66,6 +66,7 @@ class MoultrieCamera(MoultrieEntity, Camera):
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
+        """Return the latest camera image."""
         data = self.device_data
         if not data or not data.get("latest_image"):
             return None
@@ -79,12 +80,9 @@ class MoultrieCamera(MoultrieEntity, Camera):
             return self._cached_image
 
         try:
-            resp = await self.hass.async_add_executor_job(
-                lambda: requests.get(image_url, timeout=30)
-            )
-            resp.raise_for_status()
+            image_bytes = await self.coordinator.client.fetch_image(image_url)
             self._current_url = image_url
-            self._cached_image = resp.content
+            self._cached_image = image_bytes
             return self._cached_image
         except Exception:
             _LOGGER.exception("Failed to fetch camera image from %s", image_url)

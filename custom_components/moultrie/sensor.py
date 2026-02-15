@@ -13,12 +13,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfInformation, UnitOfTemperature
+from homeassistant.const import EntityCategory, PERCENTAGE, UnitOfInformation, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import MoultrieConfigEntry
 from .coordinator import MoultrieCoordinator
 from .entity import MoultrieEntity
 
@@ -99,6 +98,7 @@ SENSOR_DESCRIPTIONS: list[MoultrieSensorDescription] = [
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:signal",
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_signal_value,
     ),
     MoultrieSensorDescription(
@@ -108,6 +108,7 @@ SENSOR_DESCRIPTIONS: list[MoultrieSensorDescription] = [
         device_class=SensorDeviceClass.DATA_SIZE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_storage_free_gb,
     ),
     MoultrieSensorDescription(
@@ -117,6 +118,7 @@ SENSOR_DESCRIPTIONS: list[MoultrieSensorDescription] = [
         device_class=SensorDeviceClass.DATA_SIZE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_storage_total_gb,
     ),
     MoultrieSensorDescription(
@@ -124,12 +126,14 @@ SENSOR_DESCRIPTIONS: list[MoultrieSensorDescription] = [
         translation_key="images_used",
         icon="mdi:image-multiple",
         state_class=SensorStateClass.TOTAL,
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_images_used,
     ),
     MoultrieSensorDescription(
         key="firmware",
         translation_key="firmware",
         icon="mdi:cellphone-arrow-down",
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_sw_version,
     ),
     MoultrieSensorDescription(
@@ -151,11 +155,12 @@ SENSOR_DESCRIPTIONS: list[MoultrieSensorDescription] = [
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MoultrieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: MoultrieCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities = []
+    """Set up Moultrie sensor entities."""
+    coordinator = entry.runtime_data
+    entities: list[MoultrieSensor] = []
     for device_id in coordinator.data.get("devices", {}):
         for desc in SENSOR_DESCRIPTIONS:
             entities.append(MoultrieSensor(coordinator, device_id, desc))
@@ -173,11 +178,13 @@ class MoultrieSensor(MoultrieEntity, SensorEntity):
         device_id: int,
         description: MoultrieSensorDescription,
     ) -> None:
+        """Initialize the sensor entity."""
         super().__init__(coordinator, device_id, description.key)
         self.entity_description = description
 
     @property
     def native_value(self) -> Any:
+        """Return the sensor value."""
         data = self.device_data
         if data is None:
             return None

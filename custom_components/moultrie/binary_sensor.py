@@ -11,11 +11,11 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from . import MoultrieConfigEntry
 from .coordinator import MoultrieCoordinator
 from .entity import MoultrieEntity
 
@@ -52,12 +52,14 @@ BINARY_SENSOR_DESCRIPTIONS: list[MoultrieBinarySensorDescription] = [
         key="subscription_active",
         translation_key="subscription_active",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_subscription_active,
     ),
     MoultrieBinarySensorDescription(
         key="device_active",
         translation_key="device_active",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_device_active,
     ),
     MoultrieBinarySensorDescription(
@@ -70,6 +72,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[MoultrieBinarySensorDescription] = [
         key="pending_settings",
         translation_key="pending_settings",
         icon="mdi:sync-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_pending_settings,
     ),
 ]
@@ -77,11 +80,12 @@ BINARY_SENSOR_DESCRIPTIONS: list[MoultrieBinarySensorDescription] = [
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MoultrieConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    coordinator: MoultrieCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities = []
+    """Set up Moultrie binary sensor entities."""
+    coordinator = entry.runtime_data
+    entities: list[MoultrieBinarySensor] = []
     for device_id in coordinator.data.get("devices", {}):
         for desc in BINARY_SENSOR_DESCRIPTIONS:
             entities.append(MoultrieBinarySensor(coordinator, device_id, desc))
@@ -99,11 +103,13 @@ class MoultrieBinarySensor(MoultrieEntity, BinarySensorEntity):
         device_id: int,
         description: MoultrieBinarySensorDescription,
     ) -> None:
+        """Initialize the binary sensor entity."""
         super().__init__(coordinator, device_id, description.key)
         self.entity_description = description
 
     @property
     def is_on(self) -> bool | None:
+        """Return the binary sensor state."""
         data = self.device_data
         if data is None:
             return None
