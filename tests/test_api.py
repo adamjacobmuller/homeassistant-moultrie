@@ -11,6 +11,7 @@ import pytest
 from custom_components.moultrie.api import (
     MoultrieApiClient,
     MoultrieApiError,
+    MoultrieAuthError,
 )
 from custom_components.moultrie.const import (
     API_BASE,
@@ -487,14 +488,14 @@ class TestRefreshTokens:
         assert post_data["scope"] == SCOPE
 
     async def test_refresh_tokens_error(self) -> None:
-        """refresh_tokens raises on HTTP error."""
+        """refresh_tokens raises MoultrieAuthError on 400."""
         session = _build_session()
         resp = _mock_response(status=400)
         session.post = MagicMock(return_value=_context_manager(resp))
 
         client = _build_client(session)
 
-        with pytest.raises(aiohttp.ClientResponseError):
+        with pytest.raises(MoultrieAuthError):
             await client.refresh_tokens()
 
         # Tokens should not have changed

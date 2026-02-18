@@ -9,6 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from homeassistant.config_entries import ConfigEntry
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.core import HomeAssistant
 
 from custom_components.moultrie.const import (
@@ -188,9 +190,9 @@ MOCK_COORDINATOR_DATA: dict[str, Any] = {
 
 
 @pytest.fixture
-def mock_config_entry() -> ConfigEntry:
+def mock_config_entry() -> MockConfigEntry:
     """Create a mock config entry."""
-    entry = ConfigEntry(
+    return MockConfigEntry(
         version=1,
         minor_version=1,
         domain=DOMAIN,
@@ -204,7 +206,6 @@ def mock_config_entry() -> ConfigEntry:
         source="user",
         unique_id=MOCK_EMAIL,
     )
-    return entry
 
 
 @pytest.fixture

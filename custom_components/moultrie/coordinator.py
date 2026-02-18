@@ -8,12 +8,13 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import MoultrieApiClient, MoultrieApiError
-from .const import DOMAIN, UPDATE_INTERVAL
+from .api import MoultrieApiClient, MoultrieApiError, MoultrieAuthError
+from .const import CONF_ACCESS_TOKEN, CONF_EMAIL, CONF_PASSWORD, CONF_REFRESH_TOKEN, DOMAIN, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +26,9 @@ class MoultrieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     config_entry: ConfigEntry
 
-    def __init__(self, hass: HomeAssistant, client: MoultrieApiClient) -> None:
+    def __init__(
+        self, hass: HomeAssistant, client: MoultrieApiClient, entry: ConfigEntry
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -34,12 +37,45 @@ class MoultrieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(minutes=UPDATE_INTERVAL),
         )
         self.client = client
+        self._entry = entry
         self._known_device_ids: set[int] = set()
+
+    async def _async_relogin(self) -> None:
+        """Re-login using stored credentials when refresh token expires."""
+        email = self._entry.data.get(CONF_EMAIL)
+        password = self._entry.data.get(CONF_PASSWORD)
+        if not email or not password:
+            raise ConfigEntryAuthFailed("No stored credentials for re-login")
+
+        _LOGGER.info("Refresh token expired, re-logging in with stored credentials")
+        try:
+            tokens = await MoultrieApiClient.login(email, password, self.client._session)
+        except MoultrieAuthError as err:
+            raise ConfigEntryAuthFailed(
+                "Stored credentials are no longer valid"
+            ) from err
+
+        self.client._access_token = tokens["access_token"]
+        self.client._refresh_token = tokens["refresh_token"]
+
+        # Persist the new tokens
+        self.hass.config_entries.async_update_entry(
+            self._entry,
+            data={
+                **self._entry.data,
+                CONF_ACCESS_TOKEN: tokens["access_token"],
+                CONF_REFRESH_TOKEN: tokens["refresh_token"],
+            },
+        )
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the Moultrie API."""
         try:
-            devices = await self.client.get_devices()
+            try:
+                devices = await self.client.get_devices()
+            except MoultrieAuthError:
+                await self._async_relogin()
+                devices = await self.client.get_devices()
 
             data: dict[str, Any] = {"devices": {}}
             current_device_ids: set[int] = set()
@@ -88,6 +124,8 @@ class MoultrieCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._known_device_ids = current_device_ids
             return data
 
+        except ConfigEntryAuthFailed:
+            raise
         except MoultrieApiError as err:
             raise UpdateFailed(f"Error fetching Moultrie data: {err}") from err
         except Exception as err:

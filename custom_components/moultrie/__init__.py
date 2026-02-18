@@ -6,11 +6,14 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import MoultrieApiClient
+from .api import MoultrieApiClient, MoultrieAuthError
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_EMAIL,
+    CONF_PASSWORD,
     CONF_REFRESH_TOKEN,
     PLATFORMS,
 )
@@ -30,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MoultrieConfigEntry) -> 
         session=session,
     )
 
-    coordinator = MoultrieCoordinator(hass, client)
+    coordinator = MoultrieCoordinator(hass, client, entry)
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = coordinator

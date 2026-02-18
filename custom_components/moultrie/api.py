@@ -226,6 +226,9 @@ class MoultrieApiClient:
                 "scope": SCOPE,
             },
         ) as resp:
+            if resp.status == 400:
+                _LOGGER.debug("Refresh token rejected (400), re-login required")
+                raise MoultrieAuthError("Refresh token expired or revoked")
             resp.raise_for_status()
             tokens = await resp.json()
 

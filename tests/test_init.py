@@ -66,7 +66,7 @@ async def test_setup_entry(
         refresh_token=MOCK_REFRESH_TOKEN,
         session=mock_session,
     )
-    mock_coord_cls.assert_called_once_with(hass, mock_client)
+    mock_coord_cls.assert_called_once_with(hass, mock_client, mock_config_entry)
     mock_coordinator.async_config_entry_first_refresh.assert_awaited_once()
     mock_forward.assert_awaited_once_with(mock_config_entry, PLATFORMS)
 
